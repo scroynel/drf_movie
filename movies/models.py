@@ -3,6 +3,8 @@ from datetime import date
 
 from django.urls import reverse
 
+from django.db.models import Avg
+
 
 class Category(models.Model):
     """Категории"""
@@ -88,6 +90,11 @@ class Movie(models.Model):
     class Meta:
         verbose_name = "Фильм"
         verbose_name_plural = "Фильмы"
+
+
+    @property
+    def average_rating(self):
+        return self.ratings.aggregate(Avg('star'))['star__avg']
 
 
 class MovieShots(models.Model):

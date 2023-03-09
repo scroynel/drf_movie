@@ -37,8 +37,6 @@ class ReviewCreateView(APIView):
     
 class AddStarRatingView(APIView):
 
-    
-    
     def post(self, request):
         serializer = CreateRatingSerializer(data=request.data)
         if serializer.is_valid():

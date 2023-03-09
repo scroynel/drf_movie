@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from .models import Movie, Review, Rating
 
+from django.db.models import Avg
+
 
 class FilterReviewListSerializer(serializers.ListSerializer):
     def to_representation(self, data): # data это наш queryset
@@ -37,21 +39,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ('name', 'text', 'children')
 
 
-class MovieDetailSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    directors = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
-    actors = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
-    genres = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    reviews = ReviewSerializer(many=True)
-    class Meta:
-        model = Movie
-        exclude = ('draft',) # все поля кроме draft(черновик)
-
-
 class CreateRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
-        fields = ('star', 'movie')
+        fields = ('ip', 'star', )
 
     # validated_data - данные который передаем в наш сериализатор с клиентской стороны
     def create(self, validated_data):
@@ -61,4 +52,31 @@ class CreateRatingSerializer(serializers.ModelSerializer):
             defaults={ 'star': validated_data.get('star')}, # обновлять будем поле star
         )
         return rating # возвращаем полученную запись
+
+class MiddleRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = ('star',)
+
+    
+        
+
+class MovieDetailSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    directors = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+    actors = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+    genres = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    ratings = CreateRatingSerializer(many=True)
+    average_rating = serializers.SerializerMethodField()
+
+    def get_average_rating(self, obj):
+        return obj.average_rating 
+
+    class Meta:
+        model = Movie
+        exclude = ('draft',) # все поля кроме draft(черновик)
+
+
+
+
     
