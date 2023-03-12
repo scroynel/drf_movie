@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Movie, Review, Rating
+from .models import Movie, Review, Rating, Actor
 
 from django.db.models import Avg
 
@@ -14,6 +14,18 @@ class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value): # value - значение одной записи из БД
         serializer = self.parent.parent.__class__(value, context=self.context) # ищим всех детей, который завязаны на нашем отзыве
         return serializer.data
+
+
+class ActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Actor
+        fields = ('id', 'name', 'image')
+
+
+class ActorDetialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Actor
+        fields = '__all__'
 
 
 class MovieListSerailizer(serializers.ModelSerializer):
@@ -42,11 +54,12 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CreateRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
-        fields = ('ip', 'star', )
+        fields = ('ip', 'star', 'movie')
 
     # validated_data - данные который передаем в наш сериализатор с клиентской стороны
     def create(self, validated_data):
-        rating = Rating.objects.update_or_create(
+        # запись будет записана в rating, а true или false будет дабавлена в _
+        rating, _ = Rating.objects.update_or_create(
             ip=validated_data.get('ip', None),
             movie=validated_data.get('movie', None),
             defaults={ 'star': validated_data.get('star')}, # обновлять будем поле star
@@ -63,9 +76,10 @@ class MiddleRatingSerializer(serializers.ModelSerializer):
 
 class MovieDetailSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    directors = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
-    actors = serializers.SlugRelatedField(slug_field='name', read_only=True, many=True)
+    directors = ActorSerializer(read_only=True, many=True)
+    actors = ActorSerializer(read_only=True, many=True)
     genres = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    reviews = ReviewSerializer(many=True)
     ratings = CreateRatingSerializer(many=True)
     average_rating = serializers.SerializerMethodField()
 
