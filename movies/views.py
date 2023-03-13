@@ -3,13 +3,30 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, viewsets, pagination
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .service import get_client_ip, MovieFilter
 
 from .models import Movie, Rating, Actor
 from .serializers import MovieListSerailizer, MovieDetailSerializer, ReviewCreateSerializer, CreateRatingSerializer, ActorSerializer, ActorDetialSerializer
+
+
+class MoviePagination(pagination.PageNumberPagination):
+    page_size = 1
+    max_page_size = 1000
+
+    def get_paginated_response(self, data):
+        return Response({
+            'links': {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link()
+            },
+            'count': self.page.paginator.count,
+            'results': data
+
+        })
+
 
 # class MovieListView(APIView):
 
@@ -47,6 +64,7 @@ from .serializers import MovieListSerailizer, MovieDetailSerializer, ReviewCreat
 class MovieListView(viewsets.ReadOnlyModelViewSet): 
     filter_beckends = (DjangoFilterBackend,)
     filterset_class = MovieFilter
+    pagination_class = MoviePagination
     
 
     def get_queryset(self):

@@ -86,7 +86,8 @@ WSGI_APPLICATION = 'django_movie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'drf_movie',
+        # 'NAME': 'drf_movie',
+        'NAME': 'djangoschool',
         'USER': 'postgres',
         'PASSWORD': '4628600',
         'HOST': 'localhost',
@@ -213,6 +214,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100
+
 }
 
 DJOSER = {
@@ -223,12 +227,4 @@ DJOSER = {
     'SERIALIZERS': {},
 }
 
-SOCIALACCOUNT_PROVIDERS = {
-    'github': {
-        'SCOPE': [
-            'user',
-            'repo',
-            'read:org',
-        ],
-    }
-}
+
